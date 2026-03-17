@@ -22,13 +22,21 @@ ENGAGEMENT_FIELDS = {
 
 
 def to_api_date(d: str) -> str:
-    """Convert YYYY-MM-DD → DD-MM-YYYY as required by the MEO API."""
+    """Convert YYYY-MM-DD → DD-MM-YYYY as required by the MEO API.
+
+    Raises ValueError if *d* is non-empty and does not strictly match the
+    ``YYYY-MM-DD`` format (four-digit year, two-digit month, two-digit day).
+    """
     if not d:
         return d
+    import re
+
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", d):
+        raise ValueError(
+            f"Invalid date '{d}': expected YYYY-MM-DD with zero-padded month/day (e.g. 2025-03-01)."
+        )
     parts = d.split("-")
-    if len(parts) == 3 and len(parts[0]) == 4:
-        return f"{parts[2]}-{parts[1]}-{parts[0]}"
-    return d
+    return f"{parts[2]}-{parts[1]}-{parts[0]}"
 
 
 def flatten_post(hit: dict) -> dict:
