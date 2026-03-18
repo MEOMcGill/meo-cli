@@ -85,6 +85,8 @@ def request(
 
     if r.status_code >= 400:
         typer.echo(f"API error (HTTP {r.status_code}): {r.text[:300]}", err=True)
+        if "Fielddata is disabled" in r.text:
+            typer.echo("Hint: try adding .keyword to the field name (e.g. --by seed.MainType.keyword)", err=True)
         raise typer.Exit(1)
 
     return r.json()
