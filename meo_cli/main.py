@@ -513,16 +513,28 @@ def seeds(
     base_url: BaseUrlOpt = None,
 ) -> None:
     """List tracked seed accounts (politicians, news outlets, influencers)."""
-    params: dict = {}
+    # /seedlist expects a SearchRequest with platform + Lucene query
+    query_parts = []
     if collection:
-        params["collection"] = collection
+        query_parts.append(f"Collection:{collection}")
     if platform:
-        params["platform"] = platform
+        query_parts.append(f"Platform:{platform}")
     if province:
-        params["province"] = province
+        query_parts.append(f"Province:{province}")
+
+    params: dict = {
+        "platform": "dashboard",
+        "query": " AND ".join(query_parts) if query_parts else "*",
+    }
 
     data = api.request("/seedlist", json_data=params, base_url=base_url)
     items = data if isinstance(data, list) else data.get("data", [])
+
+    if len(items) > limit:
+        typer.echo(
+            f"Showing {limit} of {len(items)} seeds. Use -n to change limit (e.g. meo seeds -n {len(items)}).",
+            err=True,
+        )
 
     rows = [
         {
