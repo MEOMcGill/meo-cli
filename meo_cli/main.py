@@ -197,6 +197,9 @@ def search(
 
         seed.Handle.keyword:justinpjtrudeau       exact handle match
     """
+    if full:
+        quiet = True
+
     api_platform, api_query, endpoint = _resolve_platform_and_query(platform, query, index)
 
     payload: dict = {
@@ -246,6 +249,7 @@ def count(
     platform: Annotated[str, typer.Option("--platform", "-p", help="Filter by platform (searches dashboard index).")] = "dashboard",
     from_date: Annotated[str, typer.Option("--from", help="Start date YYYY-MM-DD (required)")] = ...,
     to_date: ToOpt = None,
+    fmt: FmtOpt = "json",
     index: IndexOpt = None,
     base_url: BaseUrlOpt = None,
 ) -> None:
@@ -267,7 +271,8 @@ def count(
         or data.get("recordsFiltered")
         or len(data if isinstance(data, list) else [])
     )
-    typer.echo(json.dumps({"query": query, "platform": platform, "count": total}))
+    rows = [{"query": query, "platform": platform, "count": total}]
+    output.print_data(rows, fmt, fields=["query", "platform", "count"])
 
 
 @app.command()
@@ -516,7 +521,7 @@ def seeds(
     if province:
         params["province"] = province
 
-    data = api.request("/seedlist", method="GET", params=params, base_url=base_url)
+    data = api.request("/seedlist", json_data=params, base_url=base_url)
     items = data if isinstance(data, list) else data.get("data", [])
 
     rows = [
