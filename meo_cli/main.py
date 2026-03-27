@@ -176,6 +176,7 @@ def search(
     size: Annotated[int, typer.Option("--size", "-n", help="Max results, 1–10000")] = 10,
     sort_field: Annotated[str, typer.Option("--sort-field", help="Field to sort by (e.g. date, like_count, share_count)")] = "date",
     sort_type: Annotated[str, typer.Option("--sort-type", help="Sort order: asc or desc")] = "desc",
+    fields: Annotated[Optional[str], typer.Option("--fields", help="Comma-separated list of fields to display (e.g. date,handle,text,likes)")] = None,
     fmt: FmtOpt = "jsonl",
     full: Annotated[bool, typer.Option("--full", help="Return raw API response without flattening")] = False,
     no_rt: Annotated[bool, typer.Option("--no-rt", help="Exclude retweets (Twitter)")] = False,
@@ -198,6 +199,9 @@ def search(
         rawContent:climate AND seed.Province:Ontario     (use --index twitter)
 
         seed.Handle.keyword:justinpjtrudeau       exact handle match
+
+    Use --fields to pick any field from the raw API response, including
+    nested fields with dot notation (e.g. seed.Province, seed.MainType).
     """
     if full:
         quiet = True
@@ -212,6 +216,8 @@ def search(
         "sort_field": sort_field,
         "sort_type": sort_type,
     }
+    if fields:
+        payload["select_fields"] = [f.strip() for f in fields.split(",")]
     if to_date:
         payload["to_date"] = to_api_date(to_date)
 
@@ -238,7 +244,12 @@ def search(
             )
         output.print_result_summary(hits)
 
-    rows = hits if full else [flatten_post(h) for h in hits]
+    if fields:
+        rows = hits
+    elif full:
+        rows = hits
+    else:
+        rows = [flatten_post(h) for h in hits]
 
     if out:
         n = output.write_jsonl(rows, str(out))
