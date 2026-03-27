@@ -245,7 +245,10 @@ def search(
         output.print_result_summary(hits)
 
     if fields:
-        rows = hits
+        rows = [
+            {k: v[0] if isinstance(v, list) and len(v) == 1 else v for k, v in h.items()}
+            for h in hits
+        ]
     elif full:
         rows = hits
     else:

@@ -53,6 +53,12 @@ meo search "climate change" --from 2024-01-01 --sort-field like_count
 # Sort oldest first
 meo search "climate change" --from 2024-01-01 --sort-type asc
 
+# Select specific fields
+meo search "climate change" --from 2024-01-01 --fields date,rawContent,like_count
+
+# Select nested fields
+meo search "climate change" --from 2024-01-01 --fields date,seed.Handle,seed.Province -f table
+
 # Search a dedicated platform index (for platform-specific fields)
 meo search "rawContent:climate" --index twitter --from 2024-01-01
 
@@ -218,6 +224,7 @@ meo config set-base-url https://api.meoinsightshub.net
 
 All query commands accept:
 
+- `--fields` — comma-separated list of fields to return (e.g. `date,rawContent,seed.Handle`). Supports any field from the API, including nested fields with dot notation. When omitted, returns all fields.
 - `--sort-field` — field to sort by (default: `date`). Examples: `like_count`, `share_count`, `comment_count`, `view_count`
 - `--sort-type` — sort order: `asc` or `desc` (default: `desc`)
 - `--base-url` — override the configured API URL for a single invocation
