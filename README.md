@@ -47,6 +47,12 @@ meo search "climate change" --from 2024-01-01 --to 2024-12-31
 # Search a specific platform (filters within dashboard index)
 meo search "climate change" -p twitter --from 2024-01-01
 
+# Sort by most liked (default: date desc)
+meo search "climate change" --from 2024-01-01 --sort-field like_count
+
+# Sort oldest first
+meo search "climate change" --from 2024-01-01 --sort-type asc
+
 # Search a dedicated platform index (for platform-specific fields)
 meo search "rawContent:climate" --index twitter --from 2024-01-01
 
@@ -204,7 +210,7 @@ meo config set-base-url https://api.meoinsightshub.net
 ## Security model
 
 - **Passwords** are never stored. They are prompted at login time and sent once to the API.
-- **Access tokens** are stored in your OS keychain (macOS Keychain, GNOME Keyring, Windows Credential Locker) via the `keyring` library.
+- **Access tokens** are stored in your OS keychain (macOS Keychain, GNOME Keyring, Windows Credential Locker) via the `keyring` library. In environments without a keychain (containers, servers), tokens fall back to `~/.config/meo/tokens.json` (file permissions `600`).
 - **No `.env` files** are used for runtime credentials. This is intentional — `.env` files are easy to accidentally commit or share.
 - The config file (`config.toml`) stores only non-secret values: base URL, username, and output preferences.
 
@@ -212,6 +218,8 @@ meo config set-base-url https://api.meoinsightshub.net
 
 All query commands accept:
 
+- `--sort-field` — field to sort by (default: `date`). Examples: `like_count`, `share_count`, `comment_count`, `view_count`
+- `--sort-type` — sort order: `asc` or `desc` (default: `desc`)
 - `--base-url` — override the configured API URL for a single invocation
 - `--quiet` / `-q` — suppress the result summary
 

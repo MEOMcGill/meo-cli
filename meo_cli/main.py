@@ -174,6 +174,8 @@ def search(
     from_date: Annotated[str, typer.Option("--from", help="Start date YYYY-MM-DD (required)")] = ...,
     to_date: ToOpt = None,
     size: Annotated[int, typer.Option("--size", "-n", help="Max results, 1–10000")] = 10,
+    sort_field: Annotated[str, typer.Option("--sort-field", help="Field to sort by (e.g. date, like_count, share_count)")] = "date",
+    sort_type: Annotated[str, typer.Option("--sort-type", help="Sort order: asc or desc")] = "desc",
     fmt: FmtOpt = "jsonl",
     full: Annotated[bool, typer.Option("--full", help="Return raw API response without flattening")] = False,
     no_rt: Annotated[bool, typer.Option("--no-rt", help="Exclude retweets (Twitter)")] = False,
@@ -207,6 +209,8 @@ def search(
         "query": api_query,
         "size": min(size, 10000),
         "from_date": to_api_date(from_date),
+        "sort_field": sort_field,
+        "sort_type": sort_type,
     }
     if to_date:
         payload["to_date"] = to_api_date(to_date)
