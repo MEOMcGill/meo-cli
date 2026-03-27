@@ -466,15 +466,29 @@ def agg(
 
     # Parse buckets — single field returns {"key": "val", ...}, multi returns {"key": ["v1","v2"], ...}
     by_fields = [f.strip() for f in by.split(",")]
+
+    def _col_name(field: str) -> str:
+        """Turn 'Collection.keyword' → 'Collection', 'seed.MainType' → 'MainType'."""
+        parts = field.split(".")
+        # Drop trailing '.keyword' if present
+        if parts[-1] == "keyword" and len(parts) > 1:
+            parts = parts[:-1]
+        return parts[-1]
+
+    col_names = [_col_name(f) for f in by_fields]
+    # Deduplicate if needed (e.g. two fields both map to same name)
+    if len(set(col_names)) < len(col_names):
+        col_names = [f.replace(".", "_") for f in by_fields]
+
     rows = []
     for b in buckets:
         row: dict = {}
         key = b.get("key", "")
         if isinstance(key, list):
-            for i, f in enumerate(by_fields):
-                row[f.split(".")[-1]] = key[i] if i < len(key) else ""
+            for i, name in enumerate(col_names):
+                row[name] = key[i] if i < len(key) else ""
         else:
-            row[by_fields[0].split(".")[-1]] = key
+            row[col_names[0]] = key
 
         row["count"] = b.get("doc_count", 0)
 
