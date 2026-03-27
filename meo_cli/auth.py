@@ -3,11 +3,36 @@
 from __future__ import annotations
 
 import keyring
+import keyring.errors
 import typer
 
 from meo_cli.config import load_config
 
 SERVICE_NAME = "meo-cli"
+
+
+def _ensure_backend() -> None:
+    """Select a usable keyring backend if the default one is broken."""
+    kr = keyring.get_keyring()
+    # keyrings.gauth raises NotImplementedError for set/get
+    if type(kr).__module__.startswith("keyrings.gauth"):
+        try:
+            from keyring.backends import SecretService
+
+            keyring.set_keyring(SecretService.Keyring())
+            return
+        except Exception:
+            pass
+        try:
+            from keyrings.alt.file import PlaintextKeyring
+
+            keyring.set_keyring(PlaintextKeyring())
+            return
+        except Exception:
+            pass
+
+
+_ensure_backend()
 
 
 def save_token(username: str, token: str) -> None:
