@@ -175,7 +175,7 @@ def search(
     to_date: ToOpt = None,
     size: Annotated[int, typer.Option("--size", "-n", help="Max results, 1–10000")] = 10,
     sort_field: Annotated[str, typer.Option("--sort-field", help="Field to sort by (e.g. date, like_count, share_count)")] = "date",
-    sort_type: Annotated[str, typer.Option("--sort-type", help="Sort order: asc or desc")] = "desc",
+    sort_order: Annotated[str, typer.Option("--sort-order", help="Sort order: asc or desc")] = "desc",
     fields: Annotated[Optional[str], typer.Option("--fields", help="Comma-separated list of fields to display (e.g. date,handle,text,likes)")] = None,
     fmt: FmtOpt = "jsonl",
     full: Annotated[bool, typer.Option("--full", help="Return raw API response without flattening")] = False,
@@ -214,7 +214,7 @@ def search(
         "size": min(size, 10000),
         "from_date": to_api_date(from_date),
         "sort_field": sort_field,
-        "sort_type": sort_type,
+        "sort_type": sort_order,
     }
     if fields:
         payload["select_fields"] = [f.strip() for f in fields.split(",")]
@@ -412,7 +412,7 @@ def agg(
     query: Annotated[str, typer.Argument(help="Lucene query (field:value, AND/OR/NOT, wildcards).")] = "*",
     by: Annotated[str, typer.Option("--by", help="Group by field(s), comma-separated (e.g. seed.MainType,seed.Collection).")] = ...,
     platform: Annotated[str, typer.Option("--platform", "-p", help="Filter by platform (searches dashboard index).")] = "dashboard",
-    from_date: Annotated[str, typer.Option("--from", help="Start date YYYY-MM-DD (required)")] = ...,
+    from_date: Annotated[Optional[str], typer.Option("--from", help="Start date YYYY-MM-DD")] = None,
     to_date: ToOpt = None,
     metric: Annotated[Optional[str], typer.Option("--metric", help="Metric as func:field (e.g. avg:view_count, sum:like_count).")] = None,
     limit: Annotated[int, typer.Option("--limit", "-n", help="Max buckets to return")] = 50,
@@ -420,7 +420,7 @@ def agg(
     index: IndexOpt = None,
     base_url: BaseUrlOpt = None,
 ) -> None:
-    """Aggregate posts by field. Requires --by and --from.
+    """Aggregate posts by field.
 
     Examples:
 
@@ -429,16 +429,24 @@ def agg(
         meo agg "climate" --by seed.MainType -p twitter --from 2024-01-01
 
         meo agg --by seed.MainType,seed.Collection --metric sum:like_count --from 2024-01-01
+
+        meo agg --by Platform --index seeds
+
+        meo agg --by Collection,Platform --index seeds
     """
+    if not from_date and not index:
+        typer.echo("--from is required (unless using --index).", err=True)
+        raise typer.Exit(1)
     api_platform, api_query, _ = _resolve_platform_and_query(platform, query, index)
 
     payload: dict = {
         "platform": api_platform,
         "query": api_query,
-        "from_date": to_api_date(from_date),
         "agg_field": by,
         "size": limit,
     }
+    if from_date:
+        payload["from_date"] = to_api_date(from_date)
     if to_date:
         payload["to_date"] = to_api_date(to_date)
     if metric:

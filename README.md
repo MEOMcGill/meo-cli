@@ -51,7 +51,7 @@ meo search "climate change" -p twitter --from 2024-01-01
 meo search "climate change" --from 2024-01-01 --sort-field like_count
 
 # Sort oldest first
-meo search "climate change" --from 2024-01-01 --sort-type asc
+meo search "climate change" --from 2024-01-01 --sort-order asc
 
 # Select specific fields
 meo search "climate change" --from 2024-01-01 --fields date,rawContent,like_count
@@ -226,7 +226,7 @@ All query commands accept:
 
 - `--fields` — comma-separated list of fields to return (e.g. `date,rawContent,seed.Handle`). Supports any field from the API, including nested fields with dot notation. When omitted, returns all fields.
 - `--sort-field` — field to sort by (default: `date`). Examples: `like_count`, `share_count`, `comment_count`, `view_count`
-- `--sort-type` — sort order: `asc` or `desc` (default: `desc`)
+- `--sort-order` — sort order: `asc` or `desc` (default: `desc`)
 - `--base-url` — override the configured API URL for a single invocation
 - `--quiet` / `-q` — suppress the result summary
 
