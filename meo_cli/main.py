@@ -218,8 +218,7 @@ def search(
     }
     if fields:
         payload["select_fields"] = [f.strip() for f in fields.split(",")]
-    if to_date:
-        payload["to_date"] = to_api_date(to_date)
+    payload["to_date"] = to_api_date(to_date) if to_date else "01-01-2028"
 
     data = api.request(endpoint, json_data=payload, base_url=base_url)
     hits = data if isinstance(data, list) else data.get("data", [])
@@ -279,9 +278,8 @@ def count(
         "query": api_query,
         "size": 1,
         "from_date": to_api_date(from_date),
+        "to_date": to_api_date(to_date) if to_date else "01-01-2028",
     }
-    if to_date:
-        payload["to_date"] = to_api_date(to_date)
 
     data = api.request(endpoint, json_data=payload, base_url=base_url)
     total = (
@@ -325,10 +323,9 @@ def timeline(
         "platform": api_platform,
         "query": api_query,
         "from_date": to_api_date(from_date),
+        "to_date": to_api_date(to_date) if to_date else "01-01-2028",
         "agg_time_interval": api_interval,
     }
-    if to_date:
-        payload["to_date"] = to_api_date(to_date)
 
     # Simple timeline vs advanced (grouped/metric)
     if by or metric:
@@ -447,8 +444,7 @@ def agg(
     }
     if from_date:
         payload["from_date"] = to_api_date(from_date)
-    if to_date:
-        payload["to_date"] = to_api_date(to_date)
+        payload["to_date"] = to_api_date(to_date) if to_date else "01-01-2028"
     if metric:
         func, _, field = metric.partition(":")
         if not field:
@@ -529,9 +525,8 @@ def top(
         "sort_field": ENGAGEMENT_FIELDS.get(by, "like_count"),
         "sort_type": "desc",
         "from_date": to_api_date(from_date),
+        "to_date": to_api_date(to_date) if to_date else "01-01-2028",
     }
-    if to_date:
-        payload["to_date"] = to_api_date(to_date)
 
     data = api.request(endpoint, json_data=payload, base_url=base_url)
     hits = data if isinstance(data, list) else data.get("data", [])
@@ -610,9 +605,8 @@ def scroll(
         "query": api_query,
         "size": 10_000,
         "from_date": to_api_date(from_date),
+        "to_date": to_api_date(to_date) if to_date else "01-01-2028",
     }
-    if to_date:
-        payload["to_date"] = to_api_date(to_date)
 
     total = 0
     scroll_id = None
